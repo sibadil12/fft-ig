@@ -51,57 +51,47 @@ if ($login['status'] == 'success') {
 				
 				}else{
 
-					if ($f == 'Y' OR $f == 'y') {
-					
-						$data_follow = follow($username, $data_login);
-						// $data_follow = json_decode($follow);
+					$data_follow = ($f == 'y' OR 'y') ? follow($username, $data_login) : '' ;
+					if ($data_follow['status'] == 'success') {
 
-						if ($data_follow['status'] == 'success') {
+						echo color()["LG"]."Follow Success | ";
+						$sleep = 30;
+						$id_post = $post['id'];
 
-							echo color()["LG"]."Follow Success | ";
-							$sleep = 30;
+						$like = like($id_post, $data_login);
+						if ($like['status'] == 'error') {
+							
+							echo color()["LR"]."Error Like :( | " . PHP_EOL;
 						}else{
 
-							echo color()["LR"]."Follow Failed: ".ucfirst($data_follow['details'])." | ";
-							$sleep = 0;
-						}
+							echo color()["LG"]."Like Success | ";
+							shuffle($x);
+							$text = $x[0];
+							$comment = comment($id_post, $data_login, $text);
 
-					}else{
-
-						$data_follow = '';
-					}
-					
-					$id_post = $post['id'];
-
-					$like = like($id_post, $data_login);
-					if ($like['status'] == 'error') {
-						
-						echo color()["LR"]."Error Like :( | " . PHP_EOL;
-					}else{
-
-						echo color()["LG"]."Like Success | ";
-						shuffle($x);
-						$text = $x[0];
-						$comment = comment($id_post, $data_login, $text);
-
-						if ($comment['status'] == 'success') {
-							
-							$cmt = $cmt+1;
-							echo color()["LG"]."[ $cmt ] Comment Success: " . color()['MG'].$comment['text'] . color()['CY']." | Page: ".$post['page'].PHP_EOL;
-							$sleep = $sleep + 30;
-						}else{
-
-							echo color()["LR"]."Error comment :( | ";
-							$unfollow = unfollow($username,$data_login);
-							
-							if ($unfollow['status'] == 'success') {
+							if ($comment['status'] == 'success') {
 								
-								echo color()['LG']."Unfollow " . $username." Success | " . PHP_EOL;
+								$cmt = $cmt+1;
+								echo color()["LG"]."[ $cmt ] Comment Success: " . color()['MG'].$comment['text'] . color()['CY']." | Page: ".$post['page'].PHP_EOL;
+								$sleep = $sleep + 30;
 							}else{
 
-								echo color()['LR']."Unfollow " . $username." Failed | " . PHP_EOL;
+								echo color()["LR"]."Error comment :( | ";
+								$unfollow = unfollow($username,$data_login);
+								
+								if ($unfollow['status'] == 'success') {
+									
+									echo color()['LG']."Unfollow " . $username." Success | " . PHP_EOL;
+								}else{
+
+									echo color()['LR']."Unfollow " . $username." Failed | " . PHP_EOL;
+								}
 							}
 						}
+					}else{
+
+						echo color()["LR"]."Follow Failed: ".ucfirst($data_follow['details'])." | " . PHP_EOL;
+						$sleep = 0;
 					}
 				}
 

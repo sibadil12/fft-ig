@@ -376,7 +376,7 @@ function unfollow($username, $session)
 
 function follow($username, $session)
 {
-    $profile = findProfile($username);
+    $profile = findProfile($username, $session);
     if (isset($profile['id'])) {
 
         $id = $profile['id'];
@@ -386,37 +386,45 @@ function follow($username, $session)
                 'X-CSRFToken: '.$session['csrftoken'],
                 'Cookie: csrftoken='.$session['csrftoken'].'; sessionid='.$session['sessionid']
             );
-
-        $post = curl($url,1,$header);
-        if (strpos($post, 'Location: https://www.instagram.com/accounts/login/') && strpos($post, '302 Found')) {
+        if ($profile['is_follow'] == 'true') {
             
             $data = array(
                 'status' => 'error',
-                'details' => 'you are note logged in'
-            );
-        }elseif (strpos($post, 'Location: https://www.instagram.com/'.$username) && strpos($post, '302 Found')) {
-            
-            $data = array(
-                'username' => $username,
-                'action' => 'follow',
-                'status' => 'success',
-            );
-        }elseif($profile['is_follow'] == 'true'){
-
-            $data = array(
-                'username' => $username,
-                'action' => 'follow',
-                'status' => 'error',
-                'details' => 'already follow',
+                'details' => 'already follow'
             );
         }else{
 
-            $data = array(
-                'username' => $username,
-                'action' => 'follow',
-                'status' => 'error',
-                'details' => 'unexpected error',
-            );
+            $post = curl($url,1,$header);
+            if (strpos($post, 'Location: https://www.instagram.com/accounts/login/') && strpos($post, '302 Found')) {
+                
+                $data = array(
+                    'status' => 'error',
+                    'details' => 'you are note logged in'
+                );
+            }elseif (strpos($post, 'Location: https://www.instagram.com/'.$username) && strpos($post, '302 Found')) {
+                
+                $data = array(
+                    'username' => $username,
+                    'action' => 'follow',
+                    'status' => 'success',
+                );
+            }elseif($profile['is_follow'] == 'true'){
+
+                $data = array(
+                    'username' => $username,
+                    'action' => 'follow',
+                    'status' => 'error',
+                    'details' => 'already follow',
+                );
+            }else{
+
+                $data = array(
+                    'username' => $username,
+                    'action' => 'follow',
+                    'status' => 'error',
+                    'details' => 'unexpected error',
+                );
+            }
         }
 
     }else{
@@ -570,15 +578,25 @@ function deletePost($id, $session)
 }
 
 function getPassword($prompt = "Enter Password: ") {
-    echo $prompt;
 
-    system('stty -echo');
+    if (OS == 'linux') {
+        
+        echo $prompt;
 
-    $password = trim(fgets(STDIN));
+        system('stty -echo');
 
-    system('stty echo');
+        $password = trim(fgets(STDIN));
 
+        system('stty echo');
+
+    }else{
+
+        echo $prompt;
+        $password = trim(fgets(STDIN));
+    }
+    
     return $password;
+    
 }
 
 function getUsername($prompt = "Enter Username: ") {
